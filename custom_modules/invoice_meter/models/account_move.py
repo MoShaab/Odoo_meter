@@ -1,4 +1,7 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
@@ -6,13 +9,13 @@ class AccountMoveLine(models.Model):
         # Basic meter fields
     meter_previous = fields.Float(
         string='Previous', 
-        digits=(12, 2)
+        digits=(12, 2),
         help='Previous meter reading from last invoice'
         )
 
     meter_new = fields.Float(
         string='New', 
-        digits=(12, 2)
+        digits=(12, 2),
         help='Current meter reading'
         
         )
@@ -21,7 +24,7 @@ class AccountMoveLine(models.Model):
         string='Actual', 
         compute='_compute_meter_actual', 
         store=True, 
-        digits=(12, 2)
+        digits=(12, 2),
          help='Calculated consumption'
     )
 
@@ -49,6 +52,34 @@ class AccountMoveLine(models.Model):
         compute='_compute_show_meter_fields',
         store=False
     )
+
+    @api.depends('product_id')
+    def _compute_show_meter_fields(self):
+        """Show meter fields only for metered products."""
+        for line in self:
+            line.show_meter_fields = line.product_id.is_metered_product if line.product_id else False
+
+    @api.onchange('meter_new', 'meter_previous', 'meter_replaced', 'old_meter_final_reading', 'new_meter_initial_reading')
+    def _onchange_meter_readings(self):
+        """Calculate actual consumption with meter replacement support."""
+        if not self.product_id or not self.product_id.is_metered_product:
+            return
+        
+        if self.meter_replaced:
+            # Meter was replaced during period
+            # Consumption = (Old meter final - Previous) + (New reading - New meter initial)
+            old_consumption = (self.old_meter_final_reading or 0.0) - (self.meter_previous or 0.0)
+            new_consumption = (self.meter_new or 0.0) - (self.new_meter_initial_reading or 0.0)
+            self.meter_actual = old_consumption + new_consumption
+            
+            _logger.info(f"Meter replaced - Old consumption: {old_consumption}, New consumption: {new_consumption}, Total: {self.meter_actual}")
+        else:
+            # Normal calculation
+            self.meter_actual = (self.meter_new or 0.0) - (self.meter_previous or 0.0)
+        
+        # Auto-populate quantity
+        if self.meter_actual > 0:
+            self.quantity = self.meter_actual
 
     @api.depends('meter_new', 'meter_previous')
     def _compute_meter_actual(self):
