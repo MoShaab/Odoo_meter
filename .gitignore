@@ -13,6 +13,7 @@ build/
 *.pot
 *.pyc
 *.pyo
+*.conf
 
 # IDE
 .vscode/
