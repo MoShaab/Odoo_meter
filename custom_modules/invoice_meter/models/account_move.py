@@ -68,14 +68,14 @@ class AccountMoveLine(models.Model):
         if self.meter_replaced:
             # Meter was replaced during period
             # Consumption = (Old meter final - Previous) + (New reading - New meter initial)
-            old_consumption = (self.old_meter_final_reading or 0.0) - (self.meter_previous or 0.0)
-            new_consumption = (self.meter_new or 0.0) - (self.new_meter_initial_reading or 0.0)
+            old_consumption = (self.old_meter_final_reading) - (self.meter_previous)
+            new_consumption = (self.meter_new) - (self.new_meter_initial_reading)
             self.meter_actual = old_consumption + new_consumption
             
             _logger.info(f"Meter replaced - Old consumption: {old_consumption}, New consumption: {new_consumption}, Total: {self.meter_actual}")
         else:
             # Normal calculation
-            self.meter_actual = (self.meter_new or 0.0) - (self.meter_previous or 0.0)
+            self.meter_actual = (self.meter_new) - (self.meter_previous)
         
         # Auto-populate quantity
         if self.meter_actual > 0:
@@ -85,7 +85,7 @@ class AccountMoveLine(models.Model):
     def _compute_meter_actual(self):
         # Calculate actual consumption.
         for line in self:
-            line.meter_actual = (line.meter_new or 0.0) - (line.meter_previous or 0.0)
+            line.meter_actual = (line.meter_new) - (line.meter_previous)
 
     @api.onchange('meter_actual')
     def _onchange_meter_actual(self):
@@ -93,12 +93,12 @@ class AccountMoveLine(models.Model):
         if self.meter_actual > 0:
             self.quantity = self.meter_actual
 
-    @api.onchange('meter_new', 'meter_previous')
-    def _onchange_meter_readings(self):
-        # Trigger when readings change.
-        self._compute_meter_actual()
-        if self.meter_actual > 0:
-            self.quantity = self.meter_actual
+    # @api.onchange('meter_new', 'meter_previous')
+    # def _onchange_meter_readings(self):
+    #     # Trigger when readings change.
+    #     self._compute_meter_actual()
+    #     if self.meter_actual > 0:
+    #         self.quantity = self.meter_actual
 
     @api.onchange('product_id')
     def _onchange_product_id(self):
