@@ -1,29 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Inherit Invoice Report Template -->
     <template id="report_invoice_document_inherit_meter" inherit_id="account.report_invoice_document">
         
-        <xpath expr="//table[@name='invoice_line_table']/thead/tr/th[@name='th_description']" position="after">
-            <th name="th_meter_previous" class="text-right">
+        <!-- Add meter columns to table header - only if there are metered products -->
+       <xpath expr="//table[@name='invoice_line_table']/thead/tr/th[@name='th_description']" position="after">
+            <th name="th_meter_previous" class="text-end" t-if="any(line.product_id.is_metered_product for line in o.invoice_line_ids)">
                 <span>Previous</span>
             </th>
-            <th name="th_meter_new" class="text-right">
+            <th name="th_meter_new" class="text-end" t-if="any(line.product_id.is_metered_product for line in o.invoice_line_ids)">
                 <span>New</span>
             </th>
-            <th name="th_meter_actual" class="text-right">
+            <th name="th_meter_actual" class="text-end" t-if="any(line.product_id.is_metered_product for line in o.invoice_line_ids)">
                 <span>Actual</span>
             </th>
         </xpath>
 
+        <!-- Add meter values to table body - show only for metered products -->
         <xpath expr="//table[@name='invoice_line_table']/tbody//td[@name='account_invoice_line_name']" position="after">
-            <td name="td_meter_previous" class="text-right">
-                <span t-if="line.meter_previous" t-field="line.meter_previous"/>
-            </td>
-            <td name="td_meter_new" class="text-right">
-                <span t-if="line.meter_new" t-field="line.meter_new"/>
-            </td>
-            <td name="td_meter_actual" class="text-right">
-                <span t-if="line.meter_actual" t-field="line.meter_actual"/>
-            </td>
+            <!-- This is for section lines - add empty cells if invoice has metered products -->
+            <t t-if="any(line.product_id.is_metered_product for line in o.invoice_line_ids)">
+                <td name="td_meter_previous_section" class="text-end"/>
+                <td name="td_meter_new_section" class="text-end"/>
+                <td name="td_meter_actual_section" class="text-end"/>
+            </t>
         </xpath>
+
+        <!-- Add meter values for regular product lines -->
+        <xpath expr="//table[@name='invoice_line_table']/tbody//td[@name='account_invoice_line_name']" position="after">
+            <!-- Only add cells if invoice has ANY metered products -->
+            <t t-if="any(line.product_id.is_metered_product for line in o.invoice_line_ids)">
+                <td name="td_meter_previous" class="text-end">
+                    <!-- Show value only if THIS product is metered -->
+                    <span t-if="line.product_id.is_metered_product and line.meter_previous" t-field="line.meter_previous"/>
+                </td>
+                <td name="td_meter_new" class="text-end">
+                    <span t-if="line.product_id.is_metered_product and line.meter_new" t-field="line.meter_new"/>
+                </td>
+                <td name="td_meter_actual" class="text-end">
+                    <span t-if="line.product_id.is_metered_product and line.meter_actual" t-field="line.meter_actual"/>
+                </td>
+            </t>
+        </xpath>
+        
     </template>
 </odoo>

@@ -57,7 +57,7 @@ class AccountMoveLine(models.Model):
     def _compute_show_meter_fields(self):
         """Show meter fields only for metered products."""
         for line in self:
-            line.show_meter_fields = line.product_id.is_metered_product if line.product_id else False
+            line.show_meter_fields = line.product_id.is_metered_product
 
     @api.onchange('meter_new', 'meter_previous', 'meter_replaced', 'old_meter_final_reading', 'new_meter_initial_reading')
     def _onchange_meter_readings(self):

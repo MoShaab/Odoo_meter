@@ -18,6 +18,7 @@ class ProductProduct(models.Model):
     
     is_metered_product = fields.Boolean(
         related='product_tmpl_id.is_metered_product',
+        default=False,
         store=True,
         readonly=True
     )

@@ -1,46 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Invoice Form View -->
     <record id="view_move_form_inherit_meter" model="ir.ui.view">
         <field name="name">account.move.form.inherit.meter</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+            
+            <!-- Add after quantity field -->
             <xpath expr="//field[@name='invoice_line_ids']//field[@name='name']" position="after">
-                <!-- Show only for metered products -->
-                <field name="meter_previous" optional="show" 
-                       invisible="not show_meter_fields"/>
-                <field name="meter_new" optional="show" 
-                       invisible="not show_meter_fields"/>
-                <field name="meter_actual" optional="show" 
-                       invisible="not show_meter_fields"/>
-                <field name="meter_replaced" optional="hide" 
-                       invisible="not show_meter_fields"/>
-                
-                <!-- Hidden helper field -->
                 <field name="show_meter_fields" column_invisible="1"/>
+                
+                <!-- Make these visible by default (no optional attribute or optional="show") -->
+                <field name="meter_previous" 
+                       invisible="not show_meter_fields"
+                        optional="hide"
+                       string="Previous"/>
+                       
+                <field name="meter_new" 
+                       invisible="not show_meter_fields"
+                        optional="hide"
+                       string="New"/>
+                       
+                <field name="meter_actual" 
+                       invisible="not show_meter_fields"
+                        optional="hide"
+                       string="Actual"/>
+                       
+                <!-- These stay hidden by default -->
+                <field name="meter_replaced" 
+                       optional="hide"
+                       invisible="not show_meter_fields"
+                       string="Meter Replaced"/>
+                       
+                <field name="old_meter_final_reading" 
+                       optional="hide"
+                       invisible="not show_meter_fields"
+                       string="Old Final"/>
+                       
+                <field name="new_meter_initial_reading" 
+                       optional="hide"
+                       invisible="not show_meter_fields"
+                       string="New Initial"/>
             </xpath>
             
-            <!-- Meter replacement fields in form view -->
-            <xpath expr="//field[@name='invoice_line_ids']//field[@name='name']" position="after">
-                <field name="show_meter_fields" invisible="1"/>
-                
-                
-                    
-                        <field name="meter_previous"/>
-                        <field name="meter_new"/>
-                        <field name="meter_actual"/>
-                    
-                    
-                        <field name="meter_replaced"/>
-                        <field name="old_meter_final_reading" 
-                               invisible="not meter_replaced"
-                               required="meter_replaced"/>
-                        <field name="new_meter_initial_reading" 
-                               invisible="not meter_replaced"
-                               required="meter_replaced"/>
-                    
-            </xpath>
         </field>
     </record>
 </odoo>
